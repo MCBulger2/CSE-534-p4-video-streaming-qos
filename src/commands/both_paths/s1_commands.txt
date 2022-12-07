@@ -1,0 +1,2 @@
+table_add ipv4_lpm set_nhop 10.0.1.0/24 => 1a:d4:14:82:e9:10 1 1a:d4:14:82:e9:10 1
+table_add ipv4_lpm set_nhop 10.0.2.0/24 => 06:09:bc:72:f3:ef 2 1a:3e:34:21:4f:bb 3
