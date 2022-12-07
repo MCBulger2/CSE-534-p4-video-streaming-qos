@@ -127,19 +127,10 @@ parser TCP_option_parser(packet_in b, in bit<16> ip_hdr_len,  in bit<4> tcp_hdr_
     state start {
   	    verify(tcp_hdr_data_offset >= 5, error.TcpDataOffsetTooSmall);
   	    tcp_hdr_bytes_left = 4 * (bit<7>) (tcp_hdr_data_offset - 5);
-        //tcp_hdr_bytes_left = ((4* (bit<7>)(tcp_hdr_data_offset)-20));
   	    transition consume_remaining_tcp_hdr_and_accept;
     }
     
     state consume_remaining_tcp_hdr_and_accept {
-        // A more picky sub-parser implementation would verify that
-        // all of the remaining bytes are 0, as specified in RFC 793,
-        // setting an error and rejecting if not.  This one skips past
-        // the rest of the TCP header without checking this.
-
-        // tcp_hdr_bytes_left might be as large as 40, so multiplying
-        // it by 8 it may be up to 320, which requires 9 bits to avoid
-        // losing any information.
         b.extract(tcp_option, (bit<32>) (8 * (bit<9>) tcp_hdr_bytes_left));
         transition accept;
     }
@@ -202,11 +193,6 @@ parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout 
     @name(".parse_http2") state parse_http2 {
     	packet.extract(hdr.http2);
         transition accept;
-        //transition select(hdr.http2.h_sid){
-        //    1: accept;
-        //    3: accept;  	
-        //    default: accept;
-        //}
     }
 }
 
@@ -219,7 +205,9 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
 }
 
  
-
+///
+/// This is where all the important logic is!
+///
 control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
     @name(".set_nhop") action set_nhop(macAddr_t fastDstAddr, egressSpec_t fastPort, macAddr_t slowDstAddr, egressSpec_t slowPort) {
 
